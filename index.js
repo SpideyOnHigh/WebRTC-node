@@ -30,7 +30,16 @@ wss.on("connection", socket => {
       console.log(`🔗 User joined room: ${room} (${rooms[room].length} clients)`);
 
       if (rooms[room].length <= 2) {
+        // send initiator info to THIS socket only
         socket.send(JSON.stringify({ type: "ready", initiator: socket.isInitiator }));
+        
+        // If 2 users are connected, also send ready to second user!
+        if (rooms[room].length === 2) {
+          const secondSocket = rooms[room][0]; // first socket
+          if (secondSocket.readyState === WebSocket.OPEN) {
+            secondSocket.send(JSON.stringify({ type: "ready", initiator: secondSocket.isInitiator }));
+          }
+        }
       }
     } else if (data.type === "signal") {
       const room = socket.room;
